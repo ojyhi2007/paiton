@@ -1,0 +1,116 @@
+"""
+Игра «Пьяница».
+
+Два игрока получают по 5 уникальных карт от 0 до 9.
+На каждом ходу они вскрывают верхние карты.
+Побеждает большая карта, но 0 побеждает 9.
+Победитель кладёт свои и чужие карты в конец своей колоды (сначала свою).
+
+Игра длится до победы одного из игроков или до 10^6 ходов (в этом случае — ничья "botva").
+"""
+
+from collections import deque
+
+
+class Player:
+    '''
+    Представляет одного игрока в игре «Пьяница».
+
+    У каждого игрока есть имя и своя очередь карт.
+    Карты хранятся в порядке, в котором они будут сыграны — сверху вниз.
+    Игрок может вытянуть верхнюю карту и положить карты в конец своей колоды.
+    '''
+    def __init__(self, name, cards):
+        if len(cards) != 5:
+            raise ValueError("Нужно ровно 5 карт для игрока.")
+        for x in cards:
+            if x < 0 or x > 9:
+                raise ValueError("Карты должны быть от 0 до 9.")
+        self.name = name
+        self.deck = deque(cards)
+
+    def has_card(self):
+        return bool(self.deck)
+
+    def draw(self):
+        return self.deck.popleft()
+
+    def add_to_bottom(self, c1, c2):
+        self.deck.append(c1)
+        self.deck.append(c2)
+
+
+class DrunkardGame:
+    """
+    Основной класс, управляющий ходом игры «Пьяница».
+
+    Создаёт двух игроков с начальными колодами и выполняет ходы по правилам.
+    Проверяет победу одного из игроков либо ничью при превышении лимита ходов.
+    реализовано правило: 0 побеждает 9.
+    """
+    def __init__(self, deck1, deck2):
+        all_cards = deck1 + deck2
+        if sorted(all_cards) != list(range(10)):
+            raise ValueError("Карты должны быть уникальными и 0–9.")
+        self.p1 = Player("first", deck1)
+        self.p2 = Player("second", deck2)
+        self.max_turns = 10**6
+        self.turns = 0
+
+    def beats(self, c1, c2):
+        if c1 == 0 and c2 == 9:
+            return True
+        if c1 == 9 and c2 == 0:
+            return False
+        return c1 > c2
+
+    def play(self):
+        while self.p1.has_card() and self.p2.has_card():
+            if self.turns >= self.max_turns:
+                print("botva")
+                return
+
+            c1 = self.p1.draw()
+            c2 = self.p2.draw()
+
+            if self.beats(c1, c2):
+                self.p1.add_to_bottom(c1, c2)
+            else:
+                self.p2.add_to_bottom(c1, c2)
+
+            self.turns += 1
+
+        if not self.p1.has_card():
+            print("second", self.turns)
+        else:
+            print("first", self.turns)
+
+
+def read_deck(prompt):
+    line = input(prompt).strip().split()
+    if len(line) != 5:
+        raise ValueError("Нужно ввести ровно 5 чисел.")
+    nums = []
+    for x in line:
+        if not x.isdigit():
+            raise ValueError("Введите только цифры.")
+        v = int(x)
+        if v < 0 or v > 9:
+            raise ValueError("Число должно быть от 0 до 9.")
+        nums.append(v)
+    return nums
+
+
+def main():
+    print("Добро пожаловать в игру 'Пьяница'!")
+    try:
+        deck1 = read_deck("Введите 5 карт первого игрока: ")
+        deck2 = read_deck("Введите 5 карт второго игрока: ")
+        game = DrunkardGame(deck1, deck2)
+        game.play()
+    except ValueError as e:
+        print("Ошибка:", e)
+
+
+if __name__ == "__main__":
+    main()
