@@ -51,7 +51,7 @@ class DrunkardGame:
     def __init__(self, deck1, deck2):
         all_cards = deck1 + deck2
         if sorted(all_cards) != list(range(10)):
-            raise ValueError("Карты должны быть уникальными и 0–9.")
+            raise ValueError("Карты должны быть уникальными и от 0 до 9.")
         self.p1 = Player("first", deck1)
         self.p2 = Player("second", deck2)
         self.max_turns = 10**6
@@ -110,6 +110,9 @@ def main():
         game.play()
     except ValueError as e:
         print("Ошибка:", e)
+    except KeyboardInterrupt:
+        print("\nИгра прервана пользователем.")
+
 
 
 if __name__ == "__main__":
